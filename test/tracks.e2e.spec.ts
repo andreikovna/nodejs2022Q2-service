@@ -1,11 +1,7 @@
 import { validate } from 'uuid';
 import { StatusCodes } from 'http-status-codes';
 import { request } from './lib';
-import {
-  getTokenAndUserId,
-  shouldAuthorizationBeTested,
-  removeTokenUser,
-} from './utils';
+import { getTokenAndUserId, shouldAuthorizationBeTested, removeTokenUser } from './utils';
 import { tracksRoutes } from './endpoints';
 
 const createTrackDto = {
@@ -44,9 +40,7 @@ describe('Tracks (e2e)', () => {
 
   describe('GET', () => {
     it('should correctly get all tracks', async () => {
-      const response = await unauthorizedRequest
-        .get(tracksRoutes.getAll)
-        .set(commonHeaders);
+      const response = await unauthorizedRequest.get(tracksRoutes.getAll).set(commonHeaders);
 
       expect(response.status).toBe(StatusCodes.OK);
       expect(response.body).toBeInstanceOf(Array);
@@ -62,32 +56,24 @@ describe('Tracks (e2e)', () => {
 
       expect(creationResponse.statusCode).toBe(StatusCodes.CREATED);
 
-      const searchResponse = await unauthorizedRequest
-        .get(tracksRoutes.getById(id))
-        .set(commonHeaders);
+      const searchResponse = await unauthorizedRequest.get(tracksRoutes.getById(id)).set(commonHeaders);
 
       expect(searchResponse.statusCode).toBe(StatusCodes.OK);
       expect(searchResponse.body).toBeInstanceOf(Object);
 
-      const cleanupResponse = await unauthorizedRequest
-        .delete(tracksRoutes.delete(id))
-        .set(commonHeaders);
+      const cleanupResponse = await unauthorizedRequest.delete(tracksRoutes.delete(id)).set(commonHeaders);
 
       expect(cleanupResponse.statusCode).toBe(StatusCodes.NO_CONTENT);
     });
 
     it('should respond with BAD_REQUEST status code in case of invalid id', async () => {
-      const response = await unauthorizedRequest
-        .get(tracksRoutes.getById('some-invalid-id'))
-        .set(commonHeaders);
+      const response = await unauthorizedRequest.get(tracksRoutes.getById('some-invalid-id')).set(commonHeaders);
 
       expect(response.status).toBe(StatusCodes.BAD_REQUEST);
     });
 
     it("should respond with NOT_FOUND status code in case if track doesn't exist", async () => {
-      const response = await unauthorizedRequest
-        .get(tracksRoutes.getById(randomUUID))
-        .set(commonHeaders);
+      const response = await unauthorizedRequest.get(tracksRoutes.getById(randomUUID)).set(commonHeaders);
 
       expect(response.status).toBe(StatusCodes.NOT_FOUND);
     });
@@ -95,10 +81,7 @@ describe('Tracks (e2e)', () => {
 
   describe('POST', () => {
     it('should correctly create track', async () => {
-      const response = await unauthorizedRequest
-        .post(tracksRoutes.create)
-        .set(commonHeaders)
-        .send(createTrackDto);
+      const response = await unauthorizedRequest.post(tracksRoutes.create).set(commonHeaders).send(createTrackDto);
 
       expect(response.status).toBe(StatusCodes.CREATED);
 
@@ -109,19 +92,14 @@ describe('Tracks (e2e)', () => {
       expect(artistId).toBe(createTrackDto.artistId);
       expect(albumId).toBe(createTrackDto.albumId);
 
-      const cleanupResponse = await unauthorizedRequest
-        .delete(tracksRoutes.delete(id))
-        .set(commonHeaders);
+      const cleanupResponse = await unauthorizedRequest.delete(tracksRoutes.delete(id)).set(commonHeaders);
 
       expect(cleanupResponse.statusCode).toBe(StatusCodes.NO_CONTENT);
     });
 
     it('should respond with BAD_REQUEST in case of invalid required data', async () => {
       const responses = await Promise.all([
-        unauthorizedRequest
-          .post(tracksRoutes.create)
-          .set(commonHeaders)
-          .send({}),
+        unauthorizedRequest.post(tracksRoutes.create).set(commonHeaders).send({}),
         unauthorizedRequest.post(tracksRoutes.create).set(commonHeaders).send({
           name: 'TEST_TRACK',
         }),
@@ -134,11 +112,7 @@ describe('Tracks (e2e)', () => {
         }),
       ]);
 
-      expect(
-        responses.every(
-          ({ statusCode }) => statusCode === StatusCodes.BAD_REQUEST,
-        ),
-      );
+      expect(responses.every(({ statusCode }) => statusCode === StatusCodes.BAD_REQUEST));
     });
   });
 
@@ -153,25 +127,16 @@ describe('Tracks (e2e)', () => {
 
       expect(creationResponse.status).toBe(StatusCodes.CREATED);
 
-      const updateResponse = await unauthorizedRequest
-        .put(tracksRoutes.update(createdId))
-        .set(commonHeaders)
-        .send({
-          name: createTrackDto.name,
-          duration: 188,
-          artistId: createTrackDto.artistId,
-          albumId: createTrackDto.albumId,
-        });
+      const updateResponse = await unauthorizedRequest.put(tracksRoutes.update(createdId)).set(commonHeaders).send({
+        name: createTrackDto.name,
+        duration: 188,
+        artistId: createTrackDto.artistId,
+        albumId: createTrackDto.albumId,
+      });
 
       expect(updateResponse.statusCode).toBe(StatusCodes.OK);
 
-      const {
-        id: updatedId,
-        name,
-        duration,
-        artistId,
-        albumId,
-      } = updateResponse.body;
+      const { id: updatedId, name, duration, artistId, albumId } = updateResponse.body;
 
       expect(name).toBe(createTrackDto.name);
       expect(artistId).toBe(createTrackDto.artistId);
@@ -180,23 +145,18 @@ describe('Tracks (e2e)', () => {
       expect(validate(updatedId)).toBe(true);
       expect(createdId).toBe(updatedId);
 
-      const cleanupResponse = await unauthorizedRequest
-        .delete(tracksRoutes.delete(createdId))
-        .set(commonHeaders);
+      const cleanupResponse = await unauthorizedRequest.delete(tracksRoutes.delete(createdId)).set(commonHeaders);
 
       expect(cleanupResponse.statusCode).toBe(StatusCodes.NO_CONTENT);
     });
 
     it('should respond with BAD_REQUEST status code in case of invalid id', async () => {
-      const response = await unauthorizedRequest
-        .put(tracksRoutes.update('some-invalid-id'))
-        .set(commonHeaders)
-        .send({
-          name: createTrackDto.name,
-          duration: 188,
-          artistId: createTrackDto.artistId,
-          albumId: createTrackDto.albumId,
-        });
+      const response = await unauthorizedRequest.put(tracksRoutes.update('some-invalid-id')).set(commonHeaders).send({
+        name: createTrackDto.name,
+        duration: 188,
+        artistId: createTrackDto.artistId,
+        albumId: createTrackDto.albumId,
+      });
 
       expect(response.status).toBe(StatusCodes.BAD_REQUEST);
     });
@@ -211,29 +171,23 @@ describe('Tracks (e2e)', () => {
 
       expect(creationResponse.status).toBe(StatusCodes.CREATED);
 
-      const response = await unauthorizedRequest
-        .put(tracksRoutes.update(createdId))
-        .set(commonHeaders)
-        .send({
-          name: null,
-          duration: '188',
-          artistId: 123,
-          albumId: 123,
-        });
+      const response = await unauthorizedRequest.put(tracksRoutes.update(createdId)).set(commonHeaders).send({
+        name: null,
+        duration: '188',
+        artistId: 123,
+        albumId: 123,
+      });
 
       expect(response.status).toBe(StatusCodes.BAD_REQUEST);
     });
 
     it("should respond with NOT_FOUND status code in case if track doesn't exist", async () => {
-      const response = await unauthorizedRequest
-        .put(tracksRoutes.update(randomUUID))
-        .set(commonHeaders)
-        .send({
-          name: createTrackDto.name,
-          duration: 188,
-          artistId: createTrackDto.artistId,
-          albumId: createTrackDto.albumId,
-        });
+      const response = await unauthorizedRequest.put(tracksRoutes.update(randomUUID)).set(commonHeaders).send({
+        name: createTrackDto.name,
+        duration: 188,
+        artistId: createTrackDto.artistId,
+        albumId: createTrackDto.albumId,
+      });
 
       expect(response.status).toBe(StatusCodes.NOT_FOUND);
     });
@@ -241,40 +195,29 @@ describe('Tracks (e2e)', () => {
 
   describe('DELETE', () => {
     it('should correctly delete track', async () => {
-      const response = await unauthorizedRequest
-        .post(tracksRoutes.create)
-        .set(commonHeaders)
-        .send(createTrackDto);
+      const response = await unauthorizedRequest.post(tracksRoutes.create).set(commonHeaders).send(createTrackDto);
 
       const { id } = response.body;
 
       expect(response.status).toBe(StatusCodes.CREATED);
 
-      const cleanupResponse = await unauthorizedRequest
-        .delete(tracksRoutes.delete(id))
-        .set(commonHeaders);
+      const cleanupResponse = await unauthorizedRequest.delete(tracksRoutes.delete(id)).set(commonHeaders);
 
       expect(cleanupResponse.statusCode).toBe(StatusCodes.NO_CONTENT);
 
-      const searchResponse = await unauthorizedRequest
-        .get(tracksRoutes.getById(id))
-        .set(commonHeaders);
+      const searchResponse = await unauthorizedRequest.get(tracksRoutes.getById(id)).set(commonHeaders);
 
       expect(searchResponse.statusCode).toBe(StatusCodes.NOT_FOUND);
     });
 
     it('should respond with BAD_REQUEST status code in case of invalid id', async () => {
-      const response = await unauthorizedRequest
-        .delete(tracksRoutes.delete('some-invalid-id'))
-        .set(commonHeaders);
+      const response = await unauthorizedRequest.delete(tracksRoutes.delete('some-invalid-id')).set(commonHeaders);
 
       expect(response.status).toBe(StatusCodes.BAD_REQUEST);
     });
 
     it("should respond with NOT_FOUND status code in case if track doesn't exist", async () => {
-      const response = await unauthorizedRequest
-        .delete(tracksRoutes.delete(randomUUID))
-        .set(commonHeaders);
+      const response = await unauthorizedRequest.delete(tracksRoutes.delete(randomUUID)).set(commonHeaders);
 
       expect(response.status).toBe(StatusCodes.NOT_FOUND);
     });

@@ -49,13 +49,24 @@ export class UserService {
   }
 
   update(id: string, updatePasswordDto: UpdatePasswordDto) {
+    if (!updatePasswordDto.oldPassword || !updatePasswordDto.newPassword) {
+      throw new BadRequestException(USER_ERRORS.REQUIRED_FIELDS);
+    }
+    if (typeof updatePasswordDto.oldPassword !== 'string' || typeof updatePasswordDto.newPassword !== 'string') {
+      throw new BadRequestException(USER_ERRORS.INVALID_PASSWORD_FORMAT);
+    }
     if (isValid(id)) {
       const index = db.users.findIndex(user => user.id === id);
       if (index !== -1) {
         const updatedUser = db.users[index];
         if (updatePasswordDto.oldPassword === updatedUser.password) {
-          db.users[index] = { ...updatedUser, password: updatePasswordDto.newPassword };
-          const response = { ...updatedUser };
+          db.users[index] = {
+            ...updatedUser,
+            password: updatePasswordDto.newPassword,
+            updatedAt: Date.now(),
+            version: updatedUser.version + 1,
+          };
+          const response = { ...db.users[index] };
           delete response.password;
           return response;
         } else {

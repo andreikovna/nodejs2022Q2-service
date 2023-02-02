@@ -9,5 +9,6 @@ export enum USER_ERRORS {
   USER_NOT_FOUND = 'User Not Found',
   REQUIRED_FIELDS = `Body doesn't contain required fields`,
   INVALID_BODY_FORMAT = `Login and Password should be string`,
+  INVALID_PASSWORD_FORMAT = `NewPassword and OldPassword should be string`,
   WRONG_PASSWORD = 'Wrong password',
 }

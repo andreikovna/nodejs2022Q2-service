@@ -12,3 +12,10 @@ export enum USER_ERRORS {
   INVALID_PASSWORD_FORMAT = `NewPassword and OldPassword should be string`,
   WRONG_PASSWORD = 'Wrong password',
 }
+
+export enum ARTISTS_ERRORS {
+  INVALID_ID = 'Invalid artist ID',
+  ARTIST_NOT_FOUND = 'Artist Not Found',
+  REQUIRED_FIELDS = `Body doesn't contain required fields`,
+  INVALID_BODY_FORMAT = `Name should be string and Grammy should be boolean`,
+}

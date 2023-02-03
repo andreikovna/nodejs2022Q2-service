@@ -1,19 +1,22 @@
+import { Injectable } from '@nestjs/common';
+import { Inject } from '@nestjs/common/decorators';
+import { forwardRef } from '@nestjs/common/utils';
+import { v4 } from 'uuid';
+import { BadRequestException, NotFoundException } from '@nestjs/common/exceptions';
+
 import { ArtistService } from './../artist/artist.service';
 import { isValid } from 'src/utils/constantsAndHelpers';
-import { v4 } from 'uuid';
 import { ALBUMS_ERRORS } from './../utils/constantsAndHelpers';
 import { db } from 'src/database/db';
-import { Injectable } from '@nestjs/common';
 import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
-import { BadRequestException, NotFoundException } from '@nestjs/common/exceptions';
 
 @Injectable()
 export class AlbumService {
-  artistService: ArtistService;
-  constructor() {
-    this.artistService = new ArtistService();
-  }
+  constructor(
+    @Inject(forwardRef(() => ArtistService))
+    private readonly artistService: ArtistService,
+  ) {}
   create({ artistId, name, year }: CreateAlbumDto) {
     if (!name || !year || (!artistId && artistId !== null)) {
       throw new BadRequestException(ALBUMS_ERRORS.REQUIRED_FIELDS);
@@ -84,6 +87,12 @@ export class AlbumService {
       const album = db.albums.find(album => album.id === id);
       if (album) {
         db.albums = db.albums.filter(album => album.id !== id);
+        db.tracks.forEach(track => {
+          if (track.albumId === id) {
+            track.albumId = null;
+          }
+        });
+        db.favs.albums = db.favs.albums.filter(album => album !== id);
         return;
       } else throw new NotFoundException(ALBUMS_ERRORS.ALBUM_NOT_FOUND);
     }

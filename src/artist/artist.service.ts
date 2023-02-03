@@ -65,6 +65,12 @@ export class ArtistService {
       const artist = db.artists.find(artist => artist.id === id);
       if (artist) {
         db.artists = db.artists.filter(artist => artist.id !== id);
+        db.tracks.forEach(track => {
+          if (track.artistId === id) {
+            track.artistId = null;
+          }
+        });
+        db.favs.artists = db.favs.artists.filter(artist => artist !== id);
         return;
       } else throw new NotFoundException(ARTISTS_ERRORS.ARTIST_NOT_FOUND);
     }

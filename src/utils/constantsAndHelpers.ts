@@ -24,5 +24,12 @@ export enum ALBUMS_ERRORS {
   INVALID_ID = 'Invalid album ID',
   ALBUM_NOT_FOUND = 'Album Not Found',
   REQUIRED_FIELDS = `Body doesn't contain required fields`,
-  INVALID_BODY_FORMAT = `Name should be string, Year should be number, ArtistId could be NOT empty string or null`,
+  INVALID_BODY_FORMAT = `Name should be string, Year should be number, ArtistId could be non-empty string or null`,
+}
+
+export enum TRACKS_ERRORS {
+  INVALID_ID = 'Invalid track ID',
+  TRACK_NOT_FOUND = 'Track Not Found',
+  REQUIRED_FIELDS = `Body doesn't contain required fields`,
+  INVALID_BODY_FORMAT = `Name should be string, Duration should be number, ArtistId could be non-empty string or null, AlbumId could be non-empty string or null`,
 }

@@ -42,10 +42,6 @@ export class ArtistService {
   }
 
   update(id: string, updateArtistDto: UpdateArtistDto) {
-    if (!updateArtistDto.name && !updateArtistDto.grammy) {
-      throw new BadRequestException(ARTISTS_ERRORS.REQUIRED_FIELDS);
-    }
-
     if (
       (updateArtistDto.name && typeof updateArtistDto.name !== 'string') ||
       (updateArtistDto.grammy && typeof updateArtistDto.grammy !== 'boolean')

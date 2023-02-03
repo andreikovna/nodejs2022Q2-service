@@ -19,3 +19,10 @@ export enum ARTISTS_ERRORS {
   REQUIRED_FIELDS = `Body doesn't contain required fields`,
   INVALID_BODY_FORMAT = `Name should be string and Grammy should be boolean`,
 }
+
+export enum ALBUMS_ERRORS {
+  INVALID_ID = 'Invalid album ID',
+  ALBUM_NOT_FOUND = 'Album Not Found',
+  REQUIRED_FIELDS = `Body doesn't contain required fields`,
+  INVALID_BODY_FORMAT = `Name should be string, Year should be number, ArtistId could be NOT empty string or null`,
+}

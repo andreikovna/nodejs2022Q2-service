@@ -10,26 +10,20 @@ import { isValid, USER_ERRORS } from 'src/utils/constantsAndHelpers';
 @Injectable()
 export class UserService {
   create(createUserDto: CreateUserDto) {
-    if (createUserDto.login && createUserDto.password) {
-      if (typeof createUserDto.login === 'string' && typeof createUserDto.password === 'string') {
-        const newUser = {
-          id: v4(),
-          login: createUserDto.login,
-          password: createUserDto.password,
-          version: 1,
-          createdAt: Date.now(),
-          updatedAt: Date.now(),
-        };
-        db.users.push(newUser);
+    const newUser = {
+      id: v4(),
+      login: createUserDto.login,
+      password: createUserDto.password,
+      version: 1,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
+    db.users.push(newUser);
 
-        const result = { ...newUser };
-        delete result.password;
+    const result = { ...newUser };
+    delete result.password;
 
-        return result;
-      }
-      throw new BadRequestException(USER_ERRORS.INVALID_BODY_FORMAT);
-    }
-    throw new BadRequestException(USER_ERRORS.REQUIRED_FIELDS);
+    return result;
   }
 
   findAll() {
@@ -49,12 +43,6 @@ export class UserService {
   }
 
   update(id: string, updatePasswordDto: UpdatePasswordDto) {
-    if (!updatePasswordDto.oldPassword || !updatePasswordDto.newPassword) {
-      throw new BadRequestException(USER_ERRORS.REQUIRED_FIELDS);
-    }
-    if (typeof updatePasswordDto.oldPassword !== 'string' || typeof updatePasswordDto.newPassword !== 'string') {
-      throw new BadRequestException(USER_ERRORS.INVALID_PASSWORD_FORMAT);
-    }
     if (isValid(id)) {
       const index = db.users.findIndex(user => user.id === id);
       if (index !== -1) {

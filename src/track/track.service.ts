@@ -22,16 +22,11 @@ export class TrackService {
   ) {}
 
   create({ name, duration, artistId, albumId }: CreateTrackDto) {
-    if (!name || !duration || (!artistId && artistId !== null) || (!albumId && albumId !== null)) {
+    if ((!artistId && artistId !== null) || (!albumId && albumId !== null)) {
       throw new BadRequestException(TRACKS_ERRORS.REQUIRED_FIELDS);
     }
 
-    if (
-      typeof name !== 'string' ||
-      typeof duration !== 'number' ||
-      (typeof artistId !== 'string' && artistId !== null) ||
-      (typeof albumId !== 'string' && albumId !== null)
-    ) {
+    if ((typeof artistId !== 'string' && artistId !== null) || (typeof albumId !== 'string' && albumId !== null)) {
       throw new BadRequestException(TRACKS_ERRORS.INVALID_BODY_FORMAT);
     }
     const newTrack = {
@@ -74,10 +69,8 @@ export class TrackService {
   }
 
   update(id: string, updateTrackDto: UpdateTrackDto) {
-    const { name, duration, artistId, albumId } = updateTrackDto;
+    const { artistId, albumId } = updateTrackDto;
     if (
-      (name && typeof name !== 'string') ||
-      (duration && typeof duration !== 'number') ||
       (typeof artistId !== 'string' && artistId !== null) ||
       artistId === '' ||
       (typeof albumId !== 'string' && albumId !== null) ||

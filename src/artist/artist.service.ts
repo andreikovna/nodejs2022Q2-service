@@ -10,21 +10,14 @@ import { db } from 'src/database/db';
 @Injectable()
 export class ArtistService {
   create({ name, grammy }: CreateArtistDto) {
-    if (grammy && name) {
-      if (typeof grammy !== 'boolean' || typeof name !== 'string') {
-        throw new BadRequestException(ARTISTS_ERRORS.INVALID_BODY_FORMAT);
-      }
+    const newArtist = {
+      id: v4(),
+      name,
+      grammy,
+    };
+    db.artists.push(newArtist);
 
-      const newArtist = {
-        id: v4(),
-        name,
-        grammy,
-      };
-      db.artists.push(newArtist);
-
-      return newArtist;
-    }
-    throw new BadRequestException(ARTISTS_ERRORS.REQUIRED_FIELDS);
+    return newArtist;
   }
 
   findAll() {
@@ -42,13 +35,6 @@ export class ArtistService {
   }
 
   update(id: string, updateArtistDto: UpdateArtistDto) {
-    if (
-      (updateArtistDto.name && typeof updateArtistDto.name !== 'string') ||
-      (updateArtistDto.grammy && typeof updateArtistDto.grammy !== 'boolean')
-    ) {
-      throw new BadRequestException(ARTISTS_ERRORS.INVALID_BODY_FORMAT);
-    }
-
     if (isValid(id)) {
       const index = db.artists.findIndex(artist => artist.id === id);
       if (index !== -1) {

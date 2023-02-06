@@ -18,11 +18,11 @@ export class AlbumService {
     private readonly artistService: ArtistService,
   ) {}
   create({ artistId, name, year }: CreateAlbumDto) {
-    if (!name || !year || (!artistId && artistId !== null)) {
+    if (!artistId && artistId !== null) {
       throw new BadRequestException(ALBUMS_ERRORS.REQUIRED_FIELDS);
     }
 
-    if (typeof name !== 'string' || typeof year !== 'number' || (typeof artistId !== 'string' && artistId !== null)) {
+    if (typeof artistId !== 'string' && artistId !== null) {
       throw new BadRequestException(ALBUMS_ERRORS.INVALID_BODY_FORMAT);
     }
     const newAlbum = {
@@ -58,13 +58,8 @@ export class AlbumService {
   }
 
   update(id: string, updateAlbumDto: UpdateAlbumDto) {
-    const { name, year, artistId } = updateAlbumDto;
-    if (
-      (name && typeof name !== 'string') ||
-      (year && typeof year !== 'number') ||
-      (typeof artistId !== 'string' && artistId !== null) ||
-      artistId === ''
-    ) {
+    const { artistId } = updateAlbumDto;
+    if ((typeof artistId !== 'string' && artistId !== null) || artistId === '') {
       throw new BadRequestException(ALBUMS_ERRORS.INVALID_BODY_FORMAT);
     }
     if (artistId) {

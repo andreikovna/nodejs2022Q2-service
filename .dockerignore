@@ -1,0 +1,9 @@
+node_modules
+npm-debug.log
+.eslintrc.js
+.prettierrc
+dist
+.vscode
+.env
+.gitignore
+Dockerfile

@@ -16,7 +16,7 @@ git checkout dev
 ## Installing NPM modules
 
 ```
-npm install
+npm install --force
 ```
 
 ## Running application

@@ -17,16 +17,16 @@ export class UserService {
 
   async create(createUserDto: CreateUserDto) {
     const { id } = await this.userRepository.save(createUserDto);
-    return this.userRepository.findOneByOrFail({ id });
+    return await this.userRepository.findOneByOrFail({ id });
   }
 
-  findAll() {
-    return this.userRepository.find();
+  async findAll() {
+    return await this.userRepository.find();
   }
 
-  findOne(id: string) {
+  async findOne(id: string) {
     if (isValid(id)) {
-      const user = this.userRepository.findOneBy({ id });
+      const user = await this.userRepository.findOneBy({ id });
       if (user) {
         return user;
       } else throw new NotFoundException(USER_ERRORS.USER_NOT_FOUND);
@@ -51,7 +51,7 @@ export class UserService {
     if (isValid(id)) {
       const user = await this.findOne(id);
       if (user) {
-        this.userRepository.remove(user);
+        await this.userRepository.remove(user);
         return;
       } else throw new NotFoundException(USER_ERRORS.USER_NOT_FOUND);
     }

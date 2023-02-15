@@ -11,6 +11,11 @@ import { FavoritesModule } from './favs/favorites.module';
 
 @Module({
   imports: [
+    UserModule,
+    TrackModule,
+    ArtistModule,
+    AlbumModule,
+    FavoritesModule,
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -22,16 +27,13 @@ import { FavoritesModule } from './favs/favorites.module';
         password: config.get<string>('POSTGRES_PASSWORD'),
         database: config.get<string>('POSTGRES_DB'),
         entities: [__dirname + 'dist/**/*.entity{.ts,.js}'],
-        synchronize: true,
+        // migrations: ['src/migrations/*.ts'],
+        // migrationsTableName: 'migration_table',
+        // synchronize: true,
         logging: true,
         autoLoadEntities: true,
       }),
     }),
-    UserModule,
-    TrackModule,
-    ArtistModule,
-    AlbumModule,
-    FavoritesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

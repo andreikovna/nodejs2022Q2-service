@@ -8,6 +8,7 @@
   "scripts": {
     "docker": "docker compose up -d --build",
     "docker:scan": "docker scan nodejs2022q4-service-app && docker scan nodejs2022q4-service-postgres",
+    "migration:generate": "node ./node_modules/typeorm/cli migration:create ./src/migrations/migration_table",
     "prebuild": "rimraf dist",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",

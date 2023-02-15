@@ -10,13 +10,25 @@
 ```
 git clone https://github.com/andreikovna/nodejs2022Q4-service.git
 cd nodejs2022Q4-service
-git checkout dev
+git checkout container_and_db
+```
+
+## Build image and start container
+
+```
+npm run docker
+```
+
+## Scanning images
+
+```
+npm run docker:scan
 ```
 
 ## Installing NPM modules
 
 ```
-npm install
+npm install --force
 ```
 
 ## Running application

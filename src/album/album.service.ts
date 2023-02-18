@@ -1,55 +1,48 @@
 import { Injectable } from '@nestjs/common';
 import { Inject } from '@nestjs/common/decorators';
 import { forwardRef } from '@nestjs/common/utils';
-import { v4 } from 'uuid';
 import { BadRequestException, NotFoundException } from '@nestjs/common/exceptions';
 
 import { ArtistService } from './../artist/artist.service';
 import { isValid } from 'src/utils/constantsAndHelpers';
 import { ALBUMS_ERRORS } from './../utils/constantsAndHelpers';
-import { db } from 'src/database/db';
 import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Album } from './entities/album.entity';
+import { TrackService } from 'src/track/track.service';
 
 @Injectable()
 export class AlbumService {
   constructor(
     @Inject(forwardRef(() => ArtistService))
     private readonly artistService: ArtistService,
+    @Inject(forwardRef(() => TrackService))
+    private readonly trackService: TrackService,
+    @InjectRepository(Album)
+    private readonly albumRepository: Repository<Album>,
   ) {}
-  create({ artistId, name, year }: CreateAlbumDto) {
+
+  async create(createAlbumDto: CreateAlbumDto) {
+    const { artistId } = createAlbumDto;
     if (!artistId && artistId !== null) {
       throw new BadRequestException(ALBUMS_ERRORS.REQUIRED_FIELDS);
     }
-
     if (typeof artistId !== 'string' && artistId !== null) {
       throw new BadRequestException(ALBUMS_ERRORS.INVALID_BODY_FORMAT);
     }
-    const newAlbum = {
-      id: v4(),
-      name,
-      year,
-      artistId: null,
-    };
-
-    if (artistId) {
-      const isArtist = this.artistService.findOne(artistId);
-      if (isArtist) {
-        newAlbum.artistId = artistId;
-      }
-    }
-    db.albums.push(newAlbum);
-
-    return newAlbum;
+    const { id } = await this.albumRepository.save(createAlbumDto);
+    return await this.albumRepository.findOneByOrFail({ id });
   }
 
-  findAll() {
-    return db.albums;
+  async findAll() {
+    return await this.albumRepository.find();
   }
 
-  findOne(id: string) {
+  async findOne(id: string) {
     if (isValid(id)) {
-      const album = db.albums.find(album => album.id === id);
+      const album = await this.albumRepository.findOneBy({ id });
       if (album) {
         return album;
       } else throw new NotFoundException(ALBUMS_ERRORS.ALBUM_NOT_FOUND);
@@ -57,37 +50,35 @@ export class AlbumService {
     throw new BadRequestException(ALBUMS_ERRORS.INVALID_ID);
   }
 
-  update(id: string, updateAlbumDto: UpdateAlbumDto) {
+  async update(id: string, updateAlbumDto: UpdateAlbumDto) {
     const { artistId } = updateAlbumDto;
     if ((typeof artistId !== 'string' && artistId !== null) || artistId === '') {
       throw new BadRequestException(ALBUMS_ERRORS.INVALID_BODY_FORMAT);
     }
-    if (artistId) {
-      this.artistService.findOne(artistId);
-    }
 
-    if (isValid(id)) {
-      const index = db.albums.findIndex(album => album.id === id);
-      if (index !== -1) {
-        const updateAlbum = db.albums[index];
-        db.albums[index] = { ...updateAlbum, ...updateAlbumDto };
-        return db.albums[index];
-      } else throw new NotFoundException(ALBUMS_ERRORS.ALBUM_NOT_FOUND);
+    if (artistId) {
+      if (isValid(id)) {
+        const updateAlbum = await this.findOne(id);
+        await this.albumRepository.update({ id }, { ...updateAlbum, ...updateAlbumDto });
+        return await this.findOne(id);
+      }
+      throw new BadRequestException(ALBUMS_ERRORS.INVALID_ID);
     }
-    throw new BadRequestException(ALBUMS_ERRORS.INVALID_ID);
   }
 
-  remove(id: string) {
+  async remove(id: string) {
     if (isValid(id)) {
-      const album = db.albums.find(album => album.id === id);
+      const album = await this.findOne(id);
       if (album) {
-        db.albums = db.albums.filter(album => album.id !== id);
-        db.tracks.forEach(track => {
+        this.albumRepository.remove(album);
+        const tracks = await this.trackService.findAll();
+        tracks.forEach(track => {
           if (track.albumId === id) {
             track.albumId = null;
+            this.trackService.update(track.id, track);
           }
         });
-        db.favs.albums = db.favs.albums.filter(album => album !== id);
+        // db.favs.albums = db.favs.albums.filter(album => album !== id);
         return;
       } else throw new NotFoundException(ALBUMS_ERRORS.ALBUM_NOT_FOUND);
     }

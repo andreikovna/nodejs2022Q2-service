@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common/exceptions';
 import { Repository } from 'typeorm';
-import { InjectRepository } from '@nestjs/typeorm/dist';
+import { InjectRepository } from '@nestjs/typeorm';
 
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
@@ -17,7 +17,9 @@ export class UserService {
 
   async create(createUserDto: CreateUserDto) {
     const { id } = await this.userRepository.save(createUserDto);
-    return await this.userRepository.findOneByOrFail({ id });
+    const response = await this.userRepository.findOneByOrFail({ id });
+    delete response.password;
+    return response;
   }
 
   async findAll() {
@@ -39,7 +41,10 @@ export class UserService {
       const updatedUser = await this.findOne(id);
       if (updatePasswordDto.oldPassword === updatedUser.password) {
         updatedUser.password = updatePasswordDto.newPassword;
-        return await this.userRepository.save(updatedUser);
+        const { id } = await this.userRepository.save(updatedUser);
+        const response = await this.userRepository.findOneByOrFail({ id });
+        delete response.password;
+        return response;
       } else {
         throw new ForbiddenException(USER_ERRORS.WRONG_PASSWORD);
       }

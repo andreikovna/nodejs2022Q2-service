@@ -10,7 +10,7 @@ export interface IUser {
   updatedAt: number;
 }
 
-@Entity()
+@Entity('user')
 export class User {
   @PrimaryGeneratedColumn('uuid') id: string;
 
@@ -23,10 +23,20 @@ export class User {
 
   @VersionColumn()
   version: number;
-  @Transform(({ value }) => new Date(value).getTime())
-  createdDate: number;
 
-  @UpdateDateColumn()
-  @Transform(({ value }) => new Date(value).getTime())
-  updatedDate: number;
+  @CreateDateColumn({
+    transformer: {
+      to: (value: Date) => value,
+      from: (value: Date) => value.getTime(),
+    },
+  })
+  createdAt: number;
+
+  @UpdateDateColumn({
+    transformer: {
+      to: (value: Date) => value,
+      from: (value: Date) => value.getTime(),
+    },
+  })
+  updatedAt: number;
 }

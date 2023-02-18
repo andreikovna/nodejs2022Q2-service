@@ -17,6 +17,6 @@ export class Album {
   @Column()
   year: number;
 
-  @Column()
-  artistId: number;
+  @Column({ nullable: true })
+  artistId: string | null;
 }

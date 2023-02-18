@@ -7,42 +7,42 @@ export class FavoritesController {
 
   @Post('track/:id')
   @HttpCode(201)
-  addFavoriteTrack(@Param('id') id: string) {
-    return this.favsService.addTrackToFavorites(id);
+  async addFavoriteTrack(@Param('id') id: string) {
+    return await this.favsService.addTrackToFavorites(id);
   }
 
   @Post('album/:id')
   @HttpCode(201)
-  addFavoriteAlbum(@Param('id') id: string) {
-    return this.favsService.addAlbumToFavorites(id);
+  async addFavoriteAlbum(@Param('id') id: string) {
+    return await this.favsService.addAlbumToFavorites(id);
   }
 
   @Post('artist/:id')
   @HttpCode(201)
-  addFavoriteArtist(@Param('id') id: string) {
-    return this.favsService.addArtistToFavorites(id);
+  async addFavoriteArtist(@Param('id') id: string) {
+    return await this.favsService.addArtistToFavorites(id);
   }
 
   @Get()
-  findAll() {
-    return this.favsService.findAll();
+  async findAll() {
+    return await this.favsService.findAll();
   }
 
   @Delete('track/:id')
   @HttpCode(204)
-  removeFavoriteTrack(@Param('id') id: string) {
-    return this.favsService.removeTrackFromFavorites(id);
+  async removeFavoriteTrack(@Param('id') id: string) {
+    return await this.favsService.removeTrackFromFavorites(id);
   }
 
   @Delete('album/:id')
   @HttpCode(204)
-  removeFavoriteAlbum(@Param('id') id: string) {
-    return this.favsService.removeAlbumFromFavorites(id);
+  async removeFavoriteAlbum(@Param('id') id: string) {
+    return await this.favsService.removeAlbumFromFavorites(id);
   }
 
   @Delete('artist/:id')
   @HttpCode(204)
-  removeFavoriteArtist(@Param('id') id: string) {
-    return this.favsService.removeArtistFromFavorites(id);
+  async removeFavoriteArtist(@Param('id') id: string) {
+    return await this.favsService.removeArtistFromFavorites(id);
   }
 }

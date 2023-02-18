@@ -29,7 +29,7 @@ import { FavoritesModule } from './favs/favorites.module';
         entities: [__dirname + 'dist/**/*.entity{.ts,.js}'],
         // migrations: ['src/migrations/*.ts'],
         // migrationsTableName: 'migration_table',
-        // synchronize: true,
+        synchronize: true,
         logging: true,
         autoLoadEntities: true,
       }),

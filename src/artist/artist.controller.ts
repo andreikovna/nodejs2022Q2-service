@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Put, Param, Delete, HttpCode } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Param, Delete, HttpCode, ParseUUIDPipe } from '@nestjs/common';
 import { ArtistService } from './artist.service';
 import { CreateArtistDto } from './dto/create-artist.dto';
 import { UpdateArtistDto } from './dto/update-artist.dto';
@@ -19,18 +19,18 @@ export class ArtistController {
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string) {
+  async findOne(@Param('id', new ParseUUIDPipe()) id: string) {
     return await this.artistService.findOne(id);
   }
 
   @Put(':id')
-  async update(@Param('id') id: string, @Body() updateArtistDto: UpdateArtistDto) {
+  async update(@Param('id', new ParseUUIDPipe()) id: string, @Body() updateArtistDto: UpdateArtistDto) {
     return await this.artistService.update(id, updateArtistDto);
   }
 
   @Delete(':id')
   @HttpCode(204)
-  async remove(@Param('id') id: string) {
+  async remove(@Param('id', new ParseUUIDPipe()) id: string) {
     return await this.artistService.remove(id);
   }
 }

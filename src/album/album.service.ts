@@ -26,12 +26,7 @@ export class AlbumService {
 
   async create(createAlbumDto: CreateAlbumDto) {
     const { artistId } = createAlbumDto;
-    if (!artistId && artistId !== null) {
-      throw new BadRequestException(ALBUMS_ERRORS.REQUIRED_FIELDS);
-    }
-    if (typeof artistId !== 'string' && artistId !== null) {
-      throw new BadRequestException(ALBUMS_ERRORS.INVALID_BODY_FORMAT);
-    }
+    if (artistId) await this.artistService.findOne(artistId);
     const { id } = await this.albumRepository.save(createAlbumDto);
     return await this.albumRepository.findOneByOrFail({ id });
   }
@@ -41,47 +36,36 @@ export class AlbumService {
   }
 
   async findOne(id: string) {
-    if (isValid(id)) {
-      const album = await this.albumRepository.findOneBy({ id });
-      if (album) {
-        return album;
-      } else throw new NotFoundException(ALBUMS_ERRORS.ALBUM_NOT_FOUND);
-    }
-    throw new BadRequestException(ALBUMS_ERRORS.INVALID_ID);
+    const album = await this.albumRepository.findOneBy({ id });
+    if (album) {
+      return album;
+    } else throw new NotFoundException(ALBUMS_ERRORS.ALBUM_NOT_FOUND);
   }
 
   async update(id: string, updateAlbumDto: UpdateAlbumDto) {
     const { artistId } = updateAlbumDto;
-    if ((typeof artistId !== 'string' && artistId !== null) || artistId === '') {
-      throw new BadRequestException(ALBUMS_ERRORS.INVALID_BODY_FORMAT);
+    if (artistId) {
+      await this.artistService.findOne(artistId);
     }
 
-    if (artistId) {
-      if (isValid(id)) {
-        const updateAlbum = await this.findOne(id);
-        await this.albumRepository.update({ id }, { ...updateAlbum, ...updateAlbumDto });
-        return await this.findOne(id);
-      }
-      throw new BadRequestException(ALBUMS_ERRORS.INVALID_ID);
-    }
+    const updateAlbum = await this.findOne(id);
+    await this.albumRepository.update({ id }, { ...updateAlbum, ...updateAlbumDto });
+    return await this.findOne(id);
   }
 
   async remove(id: string) {
-    if (isValid(id)) {
-      const album = await this.findOne(id);
-      if (album) {
-        this.albumRepository.remove(album);
-        const tracks = await this.trackService.findAll();
-        tracks.forEach(track => {
-          if (track.albumId === id) {
-            track.albumId = null;
-            this.trackService.update(track.id, track);
-          }
-        });
-        // db.favs.albums = db.favs.albums.filter(album => album !== id);
-        return;
-      } else throw new NotFoundException(ALBUMS_ERRORS.ALBUM_NOT_FOUND);
-    }
-    throw new BadRequestException(ALBUMS_ERRORS.INVALID_ID);
+    const album = await this.findOne(id);
+    if (album) {
+      const tracks = await this.trackService.findAll();
+      tracks.forEach(async track => {
+        if (track.albumId === id) {
+          track.albumId = null;
+          await this.trackService.update(track.id, track);
+        }
+      });
+      // db.favs.albums = db.favs.albums.filter(album => album !== id);
+      await this.albumRepository.remove(album);
+      return;
+    } else throw new NotFoundException(ALBUMS_ERRORS.ALBUM_NOT_FOUND);
   }
 }

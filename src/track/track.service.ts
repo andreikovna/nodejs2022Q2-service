@@ -27,19 +27,11 @@ export class TrackService {
 
   async create(createTrackDto: CreateTrackDto) {
     const { artistId, albumId } = createTrackDto;
-    if ((!artistId && artistId !== null) || (!albumId && albumId !== null)) {
-      throw new BadRequestException(TRACKS_ERRORS.REQUIRED_FIELDS);
-    }
-
-    if ((typeof artistId !== 'string' && artistId !== null) || (typeof albumId !== 'string' && albumId !== null)) {
-      throw new BadRequestException(TRACKS_ERRORS.INVALID_BODY_FORMAT);
-    }
-
     if (artistId) {
-      const isArtist = this.artistService.findOne(artistId);
+      await this.artistService.findOne(artistId);
     }
     if (albumId) {
-      const isAlbum = this.albumService.findOne(albumId);
+      await this.albumService.findOne(albumId);
     }
 
     const { id } = await this.trackRepository.save(createTrackDto);
@@ -51,49 +43,33 @@ export class TrackService {
   }
 
   async findOne(id: string) {
-    if (isValid(id)) {
-      const track = await this.trackRepository.findOneBy({ id });
-      if (track) {
-        return track;
-      } else throw new NotFoundException(TRACKS_ERRORS.TRACK_NOT_FOUND);
-    }
-    throw new BadRequestException(TRACKS_ERRORS.INVALID_ID);
+    const track = await this.trackRepository.findOneBy({ id });
+    if (track) {
+      return track;
+    } else throw new NotFoundException(TRACKS_ERRORS.TRACK_NOT_FOUND);
   }
 
   async update(id: string, updateTrackDto: UpdateTrackDto) {
     const { artistId, albumId } = updateTrackDto;
-    if (
-      (typeof artistId !== 'string' && artistId !== null) ||
-      artistId === '' ||
-      (typeof albumId !== 'string' && albumId !== null) ||
-      albumId === ''
-    ) {
-      throw new BadRequestException(TRACKS_ERRORS.INVALID_BODY_FORMAT);
-    }
+
     if (artistId) {
-      this.artistService.findOne(artistId);
+      await this.artistService.findOne(artistId);
     }
 
     if (albumId) {
-      this.albumService.findOne(albumId);
+      await this.albumService.findOne(albumId);
     }
 
-    if (isValid(id)) {
-      const updateTrack = await this.findOne(id);
-      await this.trackRepository.update({ id }, { ...updateTrack, ...updateTrackDto });
-      return await this.findOne(id);
-    }
-    throw new BadRequestException(TRACKS_ERRORS.INVALID_ID);
+    const updateTrack = await this.findOne(id);
+    await this.trackRepository.update({ id }, { ...updateTrack, ...updateTrackDto });
+    return await this.findOne(id);
   }
 
   async remove(id: string) {
-    if (isValid(id)) {
-      const track = await this.findOne(id);
-      if (track) {
-        this.trackRepository.remove(track);
-        // db.favs.tracks = db.favs.tracks.filter(track => track !== id);        return;
-      } else throw new NotFoundException(TRACKS_ERRORS.TRACK_NOT_FOUND);
-    }
-    throw new BadRequestException(TRACKS_ERRORS.INVALID_ID);
+    const track = await this.findOne(id);
+    if (track) {
+      await this.trackRepository.remove(track);
+      // db.favs.tracks = db.favs.tracks.filter(track => track !== id);        return;
+    } else throw new NotFoundException(TRACKS_ERRORS.TRACK_NOT_FOUND);
   }
 }

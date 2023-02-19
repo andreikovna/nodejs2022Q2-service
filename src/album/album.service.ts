@@ -63,7 +63,6 @@ export class AlbumService {
           await this.trackService.update(track.id, track);
         }
       });
-      // db.favs.albums = db.favs.albums.filter(album => album !== id);
       await this.albumRepository.remove(album);
       return;
     } else throw new NotFoundException(ALBUMS_ERRORS.ALBUM_NOT_FOUND);

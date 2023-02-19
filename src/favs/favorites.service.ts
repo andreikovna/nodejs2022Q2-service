@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { Inject } from '@nestjs/common/decorators';
 import { forwardRef } from '@nestjs/common/utils';
-import { BadRequestException, UnprocessableEntityException } from '@nestjs/common/exceptions';
+import { UnprocessableEntityException } from '@nestjs/common/exceptions';
 
 import { AlbumService } from 'src/album/album.service';
 import { ArtistService } from 'src/artist/artist.service';
 import { TrackService } from 'src/track/track.service';
 import { ALBUMS_ERRORS, ARTISTS_ERRORS, isValid, TRACKS_ERRORS } from 'src/utils/constantsAndHelpers';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Favs, IFavorites } from './entities/favorites.entity';
+import { Favs } from './entities/favorites.entity';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -25,81 +25,136 @@ export class FavoritesService {
   ) {}
 
   async findAll() {
-    const allFavs = await this.favsRepository.find();
+    const [allFavs] = await this.favsRepository.find({
+      relations: {
+        artists: true,
+        albums: true,
+        tracks: true,
+      },
+    });
 
-    // const tracks = allFavs.tracks.map(id => this.trackService.findOne(id));
-    // const albums = allFavs.albums.map(id => this.albumService.findOne(id));
-    // const artists = allFavs.artists.map(id => this.artistService.findOne(id));
-    // return {
-    //   tracks,
-    //   albums,
-    //   artists,
-    // };
+    if (allFavs) {
+      return allFavs;
+    }
+
+    await this.favsRepository.save(new Favs());
+
+    const [emptyFavs] = await this.favsRepository.find({
+      relations: {
+        artists: true,
+        albums: true,
+        tracks: true,
+      },
+    });
+
+    return emptyFavs;
   }
 
-  addTrackToFavorites(id: string) {
-    // if (isValid(id)) {
-    //   const track = db.tracks.find(track => track.id === id);
-    //   if (!track) {
-    //     throw new UnprocessableEntityException(TRACKS_ERRORS.TRACK_NOT_FOUND);
-    //   }
-    //   if (track && !db.favs.tracks.includes(id)) {
-    //     db.favs.tracks.push(id);
-    //     return track;
-    //   }
-    // }
-    // throw new BadRequestException(TRACKS_ERRORS.INVALID_ID);
+  async addTrackToFavorites(id: string) {
+    const track = await this.trackService.findOne(id);
+    if (!track) {
+      throw new UnprocessableEntityException(TRACKS_ERRORS.TRACK_NOT_FOUND);
+    }
+    const [fav] = await this.favsRepository.find({
+      relations: {
+        tracks: true,
+      },
+    });
+
+    if (!fav) {
+      await this.favsRepository.save(new Favs());
+    }
+
+    fav.tracks.push(track);
+
+    await this.favsRepository.save(fav);
+    return track;
   }
 
-  addArtistToFavorites(id: string) {
-    // if (isValid(id)) {
-    //   const artist = db.artists.find(artist => artist.id === id);
-    //   if (!artist) {
-    //     throw new UnprocessableEntityException(ARTISTS_ERRORS.ARTIST_NOT_FOUND);
-    //   }
-    //   if (artist && !db.favs.artists.includes(id)) {
-    //     db.favs.artists.push(id);
-    //     return artist;
-    //   }
-    // }
-    // throw new BadRequestException(ARTISTS_ERRORS.INVALID_ID);
+  async addArtistToFavorites(id: string) {
+    const artist = await this.artistService.findOne(id);
+    if (!artist) {
+      throw new UnprocessableEntityException(ARTISTS_ERRORS.ARTIST_NOT_FOUND);
+    }
+    const [fav] = await this.favsRepository.find({
+      relations: {
+        artists: true,
+      },
+    });
+
+    if (!fav) {
+      await this.favsRepository.save(new Favs());
+    }
+
+    fav.artists.push(artist);
+
+    await this.favsRepository.save(fav);
+    return artist;
   }
 
-  addAlbumToFavorites(id: string) {
-    // if (isValid(id)) {
-    //   const album = db.albums.find(album => album.id === id);
-    //   if (!album) {
-    //     throw new UnprocessableEntityException(ALBUMS_ERRORS.ALBUM_NOT_FOUND);
-    //   }
-    //   if (album && !db.favs.albums.includes(id)) {
-    //     db.favs.albums.push(id);
-    //     return album;
-    //   }
-    // }
-    // throw new BadRequestException(ALBUMS_ERRORS.INVALID_ID);
+  async addAlbumToFavorites(id: string) {
+    const album = await this.albumService.findOne(id);
+    const [fav] = await this.favsRepository.find({
+      relations: {
+        albums: true,
+      },
+    });
+
+    if (!fav) {
+      await this.favsRepository.save(new Favs());
+    }
+
+    fav.albums.push(album);
+
+    await this.favsRepository.save(fav);
+    return album;
   }
 
-  removeAlbumFromFavorites(id: string) {
-    // if (isValid(id)) {
-    //   db.favs.albums = db.favs.albums.filter(item => item !== id);
-    //   return;
-    // }
-    // throw new BadRequestException(ALBUMS_ERRORS.INVALID_ID);
+  async removeAlbumFromFavorites(id: string) {
+    const album = await this.albumService.findOne(id);
+    if (!album) {
+      throw new UnprocessableEntityException(ALBUMS_ERRORS.ARTIST_NOT_FOUND);
+    }
+
+    const [favs] = await this.favsRepository.find({
+      relations: {
+        albums: true,
+      },
+    });
+
+    favs.albums = favs.albums.filter(item => item.id !== id);
+
+    await this.favsRepository.save(favs);
+    return;
   }
 
-  removeArtistFromFavorites(id: string) {
-    // if (isValid(id)) {
-    //   db.favs.artists = db.favs.artists.filter(item => item !== id);
-    //   return;
-    // }
-    // throw new BadRequestException(ARTISTS_ERRORS.INVALID_ID);
+  async removeArtistFromFavorites(id: string) {
+    const artist = await this.artistService.findOne(id);
+
+    const [favs] = await this.favsRepository.find({
+      relations: {
+        artists: true,
+      },
+    });
+
+    favs.artists = favs.artists.filter(item => item.id !== id);
+
+    await this.favsRepository.save(favs);
+    return;
   }
 
-  removeTrackFromFavorites(id: string) {
-    // if (isValid(id)) {
-    //   db.favs.tracks = db.favs.tracks.filter(item => item !== id);
-    //   return;
-    // }
-    // throw new BadRequestException(TRACKS_ERRORS.INVALID_ID);
+  async removeTrackFromFavorites(id: string) {
+    const track = await this.trackService.findOne(id);
+
+    const [favs] = await this.favsRepository.find({
+      relations: {
+        tracks: true,
+      },
+    });
+
+    favs.tracks = favs.tracks.filter(item => item.id !== id);
+
+    await this.favsRepository.save(favs);
+    return;
   }
 }

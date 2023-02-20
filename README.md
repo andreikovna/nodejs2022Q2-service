@@ -10,7 +10,7 @@
 ```
 git clone https://github.com/andreikovna/nodejs2022Q4-service.git
 cd nodejs2022Q4-service
-git checkout container_and_db
+git checkout ORM&Postgres
 ```
 
 ## Build image and start container

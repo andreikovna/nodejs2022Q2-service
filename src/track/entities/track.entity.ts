@@ -1,3 +1,5 @@
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+
 export interface ITrack {
   id: string; // uuid v4
   name: string;
@@ -6,4 +8,20 @@ export interface ITrack {
   duration: number; // integer number
 }
 
-// export class Track {}
+@Entity('track')
+export class Track {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column()
+  name: string;
+
+  @Column()
+  duration: number;
+
+  @Column({ nullable: true })
+  albumId: string | null;
+
+  @Column({ nullable: true })
+  artistId: string | null;
+}

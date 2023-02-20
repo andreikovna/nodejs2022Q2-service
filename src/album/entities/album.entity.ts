@@ -1,3 +1,5 @@
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+
 export interface IAlbum {
   id: string;
   name: string;
@@ -5,4 +7,16 @@ export interface IAlbum {
   artistId: string | null;
 }
 
-// export class Album {}
+@Entity()
+export class Album {
+  @PrimaryGeneratedColumn('uuid') id: string;
+
+  @Column()
+  name: string;
+
+  @Column()
+  year: number;
+
+  @Column({ nullable: true })
+  artistId: string | null;
+}

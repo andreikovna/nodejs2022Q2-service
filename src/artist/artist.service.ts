@@ -1,65 +1,69 @@
-import { Injectable } from '@nestjs/common';
-import { BadRequestException, NotFoundException } from '@nestjs/common/exceptions';
-import { v4 } from 'uuid';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { NotFoundException } from '@nestjs/common/exceptions';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 
 import { CreateArtistDto } from './dto/create-artist.dto';
 import { UpdateArtistDto } from './dto/update-artist.dto';
-import { ARTISTS_ERRORS, isValid } from './../utils/constantsAndHelpers';
-import { db } from 'src/database/db';
+import { ARTISTS_ERRORS } from './../utils/constantsAndHelpers';
+import { Artist } from './entities/artist.entity';
+import { TrackService } from 'src/track/track.service';
+import { AlbumService } from 'src/album/album.service';
 
 @Injectable()
 export class ArtistService {
-  create({ name, grammy }: CreateArtistDto) {
-    const newArtist = {
-      id: v4(),
-      name,
-      grammy,
-    };
-    db.artists.push(newArtist);
+  constructor(
+    @Inject(forwardRef(() => TrackService))
+    private readonly trackService: TrackService,
+    @Inject(forwardRef(() => AlbumService))
+    private readonly albumService: AlbumService,
+    @InjectRepository(Artist)
+    private readonly artistRepository: Repository<Artist>,
+  ) {}
 
-    return newArtist;
+  async create(createArtistDto: CreateArtistDto) {
+    const { id } = await this.artistRepository.save(createArtistDto);
+    return await this.artistRepository.findOneByOrFail({ id });
   }
 
-  findAll() {
-    return db.artists;
+  async findAll() {
+    return await this.artistRepository.find();
   }
 
-  findOne(id: string) {
-    if (isValid(id)) {
-      const artist = db.artists.find(artist => artist.id === id);
-      if (artist) {
-        return artist;
-      } else throw new NotFoundException(ARTISTS_ERRORS.ARTIST_NOT_FOUND);
-    }
-    throw new BadRequestException(ARTISTS_ERRORS.INVALID_ID);
+  async findOne(id: string) {
+    const artist = await this.artistRepository.findOneBy({ id });
+    if (artist) {
+      return artist;
+    } else throw new NotFoundException(ARTISTS_ERRORS.ARTIST_NOT_FOUND);
   }
 
-  update(id: string, updateArtistDto: UpdateArtistDto) {
-    if (isValid(id)) {
-      const index = db.artists.findIndex(artist => artist.id === id);
-      if (index !== -1) {
-        const updatedArtist = db.artists[index];
-        db.artists[index] = { ...updatedArtist, ...updateArtistDto };
-        return db.artists[index];
-      } else throw new NotFoundException(ARTISTS_ERRORS.ARTIST_NOT_FOUND);
-    }
-    throw new BadRequestException(ARTISTS_ERRORS.INVALID_ID);
+  async update(id: string, updateArtistDto: UpdateArtistDto) {
+    const updatedArtist = await this.findOne(id);
+    await this.artistRepository.update({ id }, { ...updatedArtist, ...updateArtistDto });
+    return await this.findOne(id);
   }
 
-  remove(id: string) {
-    if (isValid(id)) {
-      const artist = db.artists.find(artist => artist.id === id);
-      if (artist) {
-        db.artists = db.artists.filter(artist => artist.id !== id);
-        db.tracks.forEach(track => {
-          if (track.artistId === id) {
-            track.artistId = null;
-          }
-        });
-        db.favs.artists = db.favs.artists.filter(artist => artist !== id);
-        return;
-      } else throw new NotFoundException(ARTISTS_ERRORS.ARTIST_NOT_FOUND);
-    }
-    throw new BadRequestException(ARTISTS_ERRORS.INVALID_ID);
+  async remove(id: string) {
+    const artist = await this.findOne(id);
+    if (artist) {
+      const tracks = await this.trackService.findAll();
+      tracks.forEach(async track => {
+        if (track.artistId === id) {
+          track.artistId = null;
+          await this.trackService.update(track.id, track);
+        }
+      });
+
+      const albums = await this.albumService.findAll();
+      albums.forEach(async album => {
+        if (album.artistId === id) {
+          album.artistId = null;
+          await this.albumService.update(album.id, album);
+        }
+      });
+      await this.artistRepository.remove(artist);
+      // db.favs.artist = db.favs.artists.filter(album => album !== id);
+      return;
+    } else throw new NotFoundException(ARTISTS_ERRORS.ARTIST_NOT_FOUND);
   }
 }

@@ -1,31 +1,16 @@
-import { validate, version } from 'uuid';
-
-export const isValid = (id: string): boolean => {
-  return validate(id) && version(id) === 4;
-};
-
 export enum USER_ERRORS {
-  INVALID_ID = 'Invalid user ID',
   USER_NOT_FOUND = 'User Not Found',
-  INVALID_PASSWORD_FORMAT = `NewPassword and OldPassword should be string`,
   WRONG_PASSWORD = 'Wrong password',
 }
 
 export enum ARTISTS_ERRORS {
-  INVALID_ID = 'Invalid artist ID',
   ARTIST_NOT_FOUND = 'Artist Not Found',
 }
 
 export enum ALBUMS_ERRORS {
-  INVALID_ID = 'Invalid album ID',
   ALBUM_NOT_FOUND = 'Album Not Found',
-  REQUIRED_FIELDS = `Body doesn't contain required fields`,
-  INVALID_BODY_FORMAT = `Name should be string, Year should be number, ArtistId could be non-empty string or null`,
 }
 
 export enum TRACKS_ERRORS {
-  INVALID_ID = 'Invalid track ID',
   TRACK_NOT_FOUND = 'Track Not Found',
-  REQUIRED_FIELDS = `Body doesn't contain required fields`,
-  INVALID_BODY_FORMAT = `Name should be string, Duration should be number, ArtistId could be non-empty string or null, AlbumId could be non-empty string or null`,
 }

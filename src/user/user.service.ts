@@ -1,78 +1,56 @@
 import { Injectable } from '@nestjs/common';
-import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common/exceptions';
-import { v4 } from 'uuid';
+import { ForbiddenException, NotFoundException } from '@nestjs/common/exceptions';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
-import { db } from 'src/database/db';
-import { isValid, USER_ERRORS } from 'src/utils/constantsAndHelpers';
+import { USER_ERRORS } from 'src/utils/constantsAndHelpers';
+import { User } from './entities/user.entity';
 
 @Injectable()
 export class UserService {
-  create(createUserDto: CreateUserDto) {
-    const newUser = {
-      id: v4(),
-      login: createUserDto.login,
-      password: createUserDto.password,
-      version: 1,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-    };
-    db.users.push(newUser);
+  constructor(
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+  ) {}
 
-    const result = { ...newUser };
-    delete result.password;
-
-    return result;
+  async create(createUserDto: CreateUserDto) {
+    const { id } = await this.userRepository.save(createUserDto);
+    const response = await this.userRepository.findOneByOrFail({ id });
+    delete response.password;
+    return response;
   }
 
-  findAll() {
-    return db.users;
+  async findAll() {
+    return await this.userRepository.find();
   }
 
-  findOne(id: string) {
-    if (isValid(id)) {
-      const user = db.users.find(user => user.id === id);
-      if (user) {
-        const response = { ...user };
-        delete response.password;
-        return response;
-      } else throw new NotFoundException(USER_ERRORS.USER_NOT_FOUND);
+  async findOne(id: string) {
+    const user = await this.userRepository.findOneBy({ id });
+    if (user) {
+      return user;
+    } else throw new NotFoundException(USER_ERRORS.USER_NOT_FOUND);
+  }
+
+  async update(id: string, updatePasswordDto: UpdatePasswordDto) {
+    const updatedUser = await this.findOne(id);
+    if (updatePasswordDto.oldPassword === updatedUser.password) {
+      updatedUser.password = updatePasswordDto.newPassword;
+      const { id } = await this.userRepository.save(updatedUser);
+      const response = await this.userRepository.findOneByOrFail({ id });
+      delete response.password;
+      return response;
+    } else {
+      throw new ForbiddenException(USER_ERRORS.WRONG_PASSWORD);
     }
-    throw new BadRequestException(USER_ERRORS.INVALID_ID);
   }
 
-  update(id: string, updatePasswordDto: UpdatePasswordDto) {
-    if (isValid(id)) {
-      const index = db.users.findIndex(user => user.id === id);
-      if (index !== -1) {
-        const updatedUser = db.users[index];
-        if (updatePasswordDto.oldPassword === updatedUser.password) {
-          db.users[index] = {
-            ...updatedUser,
-            password: updatePasswordDto.newPassword,
-            updatedAt: Date.now(),
-            version: updatedUser.version + 1,
-          };
-          const response = { ...db.users[index] };
-          delete response.password;
-          return response;
-        } else {
-          throw new ForbiddenException(USER_ERRORS.WRONG_PASSWORD);
-        }
-      } else throw new NotFoundException(USER_ERRORS.USER_NOT_FOUND);
-    }
-    throw new BadRequestException(USER_ERRORS.INVALID_ID);
-  }
-
-  remove(id: string) {
-    if (isValid(id)) {
-      const user = db.users.find(user => user.id === id);
-      if (user) {
-        db.users = db.users.filter(user => user.id !== id);
-        return;
-      } else throw new NotFoundException(USER_ERRORS.USER_NOT_FOUND);
-    }
-    throw new BadRequestException(USER_ERRORS.INVALID_ID);
+  async remove(id: string) {
+    const user = await this.findOne(id);
+    if (user) {
+      await this.userRepository.remove(user);
+      return;
+    } else throw new NotFoundException(USER_ERRORS.USER_NOT_FOUND);
   }
 }

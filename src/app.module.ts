@@ -21,7 +21,8 @@ import { FavoritesModule } from './favs/favorites.module';
       inject: [ConfigService],
       useFactory: async (config: ConfigService) => ({
         type: 'postgres',
-        host: 'localhost',
+        // host: 'localhost',
+        host: 'postgres-database',
         port: config.get<number>('POSTGRES_PORT'),
         username: config.get<string>('POSTGRES_USER'),
         password: config.get<string>('POSTGRES_PASSWORD'),

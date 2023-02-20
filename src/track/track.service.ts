@@ -7,7 +7,7 @@ import { forwardRef } from '@nestjs/common/utils';
 
 import { AlbumService } from 'src/album/album.service';
 import { ArtistService } from 'src/artist/artist.service';
-import { isValid, TRACKS_ERRORS } from 'src/utils/constantsAndHelpers';
+import { TRACKS_ERRORS } from 'src/utils/constantsAndHelpers';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
 import { InjectRepository } from '@nestjs/typeorm';

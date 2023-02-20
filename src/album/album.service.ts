@@ -1,15 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { Inject } from '@nestjs/common/decorators';
 import { forwardRef } from '@nestjs/common/utils';
-import { BadRequestException, NotFoundException } from '@nestjs/common/exceptions';
+import { NotFoundException } from '@nestjs/common/exceptions';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 import { ArtistService } from './../artist/artist.service';
-import { isValid } from 'src/utils/constantsAndHelpers';
 import { ALBUMS_ERRORS } from './../utils/constantsAndHelpers';
 import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { Album } from './entities/album.entity';
 import { TrackService } from 'src/track/track.service';
 
